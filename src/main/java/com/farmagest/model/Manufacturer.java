@@ -14,7 +14,11 @@ public class Manufacturer {
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
 
-    public Manufacturer(long id, String name, String phone, String email, String website, String address, boolean active, LocalDateTime createdAt, LocalDateTime updatedAt) {
+    public Manufacturer(long id, String name, String phone,
+                        String email, String website, String address,
+                        boolean active, LocalDateTime createdAt,
+                        LocalDateTime updatedAt) {
+
         this.id = id;
         this.name = name;
         this.phone = phone;
@@ -39,42 +43,6 @@ public class Manufacturer {
                 ", createdAt=" + createdAt +
                 ", updatedAt=" + updatedAt +
                 '}';
-    }
-
-    public void setId(long id) {
-        this.id = id;
-    }
-
-    public void setName(String name) {
-        this.name = name;
-    }
-
-    public void setPhone(String phone) {
-        this.phone = phone;
-    }
-
-    public void setEmail(String email) {
-        this.email = email;
-    }
-
-    public void setWebsite(String website) {
-        this.website = website;
-    }
-
-    public void setAddress(String address) {
-        this.address = address;
-    }
-
-    public void setActive(boolean active) {
-        this.active = active;
-    }
-
-    public void setCreatedAt(LocalDateTime createdAt) {
-        this.createdAt = createdAt;
-    }
-
-    public void setUpdatedAt(LocalDateTime updatedAt) {
-        this.updatedAt = updatedAt;
     }
 
     public long getId() {
@@ -111,5 +79,41 @@ public class Manufacturer {
 
     public LocalDateTime getUpdatedAt() {
         return updatedAt;
+    }
+
+    public void setId(long id) {
+        this.id = id;
+    }
+
+    public void setName(String name) {
+        this.name = name;
+    }
+
+    public void setPhone(String phone) {
+        this.phone = phone;
+    }
+
+    public void setEmail(String email) {
+        this.email = email;
+    }
+
+    public void setWebsite(String website) {
+        this.website = website;
+    }
+
+    public void setAddress(String address) {
+        this.address = address;
+    }
+
+    public void setActive(boolean active) {
+        this.active = active;
+    }
+
+    public void setCreatedAt(LocalDateTime createdAt) {
+        this.createdAt = createdAt;
+    }
+
+    public void setUpdatedAt(LocalDateTime updatedAt) {
+        this.updatedAt = updatedAt;
     }
 }

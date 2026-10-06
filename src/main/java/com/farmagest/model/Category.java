@@ -11,7 +11,10 @@ public class Category {
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
 
-    public Category(long id, String name, String description, boolean active, LocalDateTime createdAt, LocalDateTime updatedAt) {
+    public Category(long id, String name, String description,
+                    boolean active, LocalDateTime createdAt,
+                    LocalDateTime updatedAt) {
+
         this.id = id;
         this.name = name;
         this.description = description;
@@ -30,30 +33,6 @@ public class Category {
                 ", createdAt=" + createdAt +
                 ", updatedAt=" + updatedAt +
                 '}';
-    }
-
-    public void setId(long id) {
-        this.id = id;
-    }
-
-    public void setName(String name) {
-        this.name = name;
-    }
-
-    public void setDescription(String description) {
-        this.description = description;
-    }
-
-    public void setActive(boolean active) {
-        this.active = active;
-    }
-
-    public void setCreatedAt(LocalDateTime createdAt) {
-        this.createdAt = createdAt;
-    }
-
-    public void setUpdatedAt(LocalDateTime updatedAt) {
-        this.updatedAt = updatedAt;
     }
 
     public long getId() {
@@ -78,5 +57,29 @@ public class Category {
 
     public LocalDateTime getUpdatedAt() {
         return updatedAt;
+    }
+
+    public void setId(long id) {
+        this.id = id;
+    }
+
+    public void setName(String name) {
+        this.name = name;
+    }
+
+    public void setDescription(String description) {
+        this.description = description;
+    }
+
+    public void setActive(boolean active) {
+        this.active = active;
+    }
+
+    public void setCreatedAt(LocalDateTime createdAt) {
+        this.createdAt = createdAt;
+    }
+
+    public void setUpdatedAt(LocalDateTime updatedAt) {
+        this.updatedAt = updatedAt;
     }
 }

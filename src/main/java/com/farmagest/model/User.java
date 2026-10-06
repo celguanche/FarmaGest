@@ -18,7 +18,12 @@ public class User {
     private LocalDateTime updatedAt;
     private LocalDateTime lastLoginAt;
 
-    public User(long id, String username, String passwordHash, String firstName, String lastName, String email, Role role, boolean active, LocalDateTime createdAt, LocalDateTime updatedAt, LocalDateTime lastLoginAt) {
+    public User(long id, String username, String passwordHash,
+                String firstName, String lastName, String email,
+                Role role, boolean active,
+                LocalDateTime createdAt, LocalDateTime updatedAt,
+                LocalDateTime lastLoginAt) {
+
         this.id = id;
         this.username = username;
         this.passwordHash = passwordHash;
@@ -46,50 +51,6 @@ public class User {
                 ", updatedAt=" + updatedAt +
                 ", lastLoginAt=" + lastLoginAt +
                 '}';
-    }
-
-    public void setId(long id) {
-        this.id = id;
-    }
-
-    public void setUsername(String username) {
-        this.username = username;
-    }
-
-    public void setPasswordHash(String passwordHash) {
-        this.passwordHash = passwordHash;
-    }
-
-    public void setFirstName(String firstName) {
-        this.firstName = firstName;
-    }
-
-    public void setLastName(String lastName) {
-        this.lastName = lastName;
-    }
-
-    public void setEmail(String email) {
-        this.email = email;
-    }
-
-    public void setRole(Role role) {
-        this.role = role;
-    }
-
-    public void setActive(boolean active) {
-        this.active = active;
-    }
-
-    public void setCreatedAt(LocalDateTime createdAt) {
-        this.createdAt = createdAt;
-    }
-
-    public void setUpdatedAt(LocalDateTime updatedAt) {
-        this.updatedAt = updatedAt;
-    }
-
-    public void setLastLoginAt(LocalDateTime lastLoginAt) {
-        this.lastLoginAt = lastLoginAt;
     }
 
     public long getId() {
@@ -134,5 +95,49 @@ public class User {
 
     public LocalDateTime getLastLoginAt() {
         return lastLoginAt;
+    }
+
+    public void setId(long id) {
+        this.id = id;
+    }
+
+    public void setUsername(String username) {
+        this.username = username;
+    }
+
+    public void setPasswordHash(String passwordHash) {
+        this.passwordHash = passwordHash;
+    }
+
+    public void setFirstName(String firstName) {
+        this.firstName = firstName;
+    }
+
+    public void setLastName(String lastName) {
+        this.lastName = lastName;
+    }
+
+    public void setEmail(String email) {
+        this.email = email;
+    }
+
+    public void setRole(Role role) {
+        this.role = role;
+    }
+
+    public void setActive(boolean active) {
+        this.active = active;
+    }
+
+    public void setCreatedAt(LocalDateTime createdAt) {
+        this.createdAt = createdAt;
+    }
+
+    public void setUpdatedAt(LocalDateTime updatedAt) {
+        this.updatedAt = updatedAt;
+    }
+
+    public void setLastLoginAt(LocalDateTime lastLoginAt) {
+        this.lastLoginAt = lastLoginAt;
     }
 }

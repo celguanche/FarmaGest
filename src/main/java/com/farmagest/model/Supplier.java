@@ -15,7 +15,11 @@ public class Supplier {
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
 
-    public Supplier(long id, String businessName, String taxId, String contactName, String phone, String email, String address, boolean active, LocalDateTime createdAt, LocalDateTime updatedAt) {
+    public Supplier(long id, String businessName, String taxId,
+                    String contactName, String phone, String email,
+                    String address, boolean active,
+                    LocalDateTime createdAt, LocalDateTime updatedAt) {
+
         this.id = id;
         this.businessName = businessName;
         this.taxId = taxId;
