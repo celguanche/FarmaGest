@@ -172,4 +172,41 @@ public class PurchaseItemDAO {
                 resultSet.getTimestamp("created_at").toLocalDateTime()
         );
     }
+
+    public List<PurchaseItem> findByPurchaseId(Connection connection, long purchaseId) throws SQLException {
+
+        String sql = "SELECT id, purchase_id, product_id, quantity, " +
+                "unit_cost, vat_rate, subtotal, tax_amount, " +
+                "line_total, created_at " +
+                "FROM purchase_items " +
+                "WHERE purchase_id = ? " +
+                "ORDER BY id";
+
+        List<PurchaseItem> items = new ArrayList<>();
+
+        try (
+                PreparedStatement statement = connection.prepareStatement(sql)
+        ) {
+
+            statement.setLong(1, purchaseId);
+
+            try (ResultSet resultSet = statement.executeQuery()) {
+
+                while (resultSet.next()) {
+                    items.add(
+                            mapResultSetToPurchaseItem(resultSet)
+                    );
+                }
+            }
+
+            return items;
+
+        } catch (SQLException e) {
+            throw new DatabaseException(
+                    "Error al obtener las líneas de la compra",
+                    e
+            );
+        }
+    }
+
 }

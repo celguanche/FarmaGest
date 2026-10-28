@@ -206,4 +206,37 @@ public class PurchaseDAO {
                         .toLocalDateTime()
         );
     }
+
+    public Purchase findByIdForUpdate(Connection connection, long id) throws SQLException {
+
+        String sql = "SELECT id, supplier_id, created_by_user_id, status, " +
+                "subtotal, tax_amount, total_amount, ordered_at, received_at, " +
+                "cancelled_at, cancelled_by_user_id, cancellation_reason, notes, " +
+                "created_at, updated_at " +
+                "FROM purchases " +
+                "WHERE id = ?" + " FOR UPDATE";
+
+        try (
+                PreparedStatement statement = connection.prepareStatement(sql)
+        ) {
+
+            statement.setLong(1, id);
+
+            try (ResultSet resultSet = statement.executeQuery()) {
+
+                if (resultSet.next()) {
+                    return mapResultSetToPurchase(resultSet);
+                }
+
+                return null;
+            }
+
+        } catch (SQLException e) {
+            throw new DatabaseException(
+                    "Error al buscar la compra por id",
+                    e
+            );
+        }
+    }
+
 }

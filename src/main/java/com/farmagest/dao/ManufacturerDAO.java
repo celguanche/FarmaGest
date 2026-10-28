@@ -156,4 +156,30 @@ public class ManufacturerDAO {
                 resultSet.getTimestamp("updated_at").toLocalDateTime()
         );
     }
+
+    public Manufacturer findByIdForUpdate(Connection connection, long id) throws SQLException {
+
+        String sql = "SELECT id, name, phone, email, website, address, active, created_at, updated_at " +
+                "FROM manufacturers WHERE id = ?" + " FOR UPDATE";
+
+        try (
+                PreparedStatement statement = connection.prepareStatement(sql)
+        ) {
+
+            statement.setLong(1, id);
+
+            try (ResultSet resultSet = statement.executeQuery()) {
+
+                if (resultSet.next()) {
+                    return mapResultSetToManufacturer(resultSet);
+                }
+
+                return null;
+            }
+
+        } catch (SQLException e) {
+            throw new DatabaseException("Error al buscar el fabricante por id", e);
+        }
+    }
+
 }

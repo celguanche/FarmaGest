@@ -229,4 +229,37 @@ public class SaleDAO {
                         .toLocalDateTime()
         );
     }
+
+    public Sale findByIdForUpdate(Connection connection, long id) throws SQLException {
+
+        String sql = "SELECT id, employee_user_id, customer_id, payment_method, status, " +
+                "subtotal, tax_amount, total_amount, sold_at, " +
+                "cancelled_at, cancelled_by_user_id, cancellation_reason, " +
+                "created_at, updated_at " +
+                "FROM sales " +
+                "WHERE id = ?" + " FOR UPDATE";
+
+        try (
+                PreparedStatement statement = connection.prepareStatement(sql)
+        ) {
+
+            statement.setLong(1, id);
+
+            try (ResultSet resultSet = statement.executeQuery()) {
+
+                if (resultSet.next()) {
+                    return mapResultSetToSale(resultSet);
+                }
+
+                return null;
+            }
+
+        } catch (SQLException e) {
+            throw new DatabaseException(
+                    "Error al buscar la venta por id",
+                    e
+            );
+        }
+    }
+
 }

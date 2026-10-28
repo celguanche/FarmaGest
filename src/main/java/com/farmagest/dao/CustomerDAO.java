@@ -154,4 +154,30 @@ public class CustomerDAO {
                 resultSet.getTimestamp("updated_at").toLocalDateTime()
         );
     }
+
+    public Customer findByIdForUpdate(Connection connection, long id) throws SQLException {
+
+        String sql = "SELECT id, first_name, last_name, phone, email, active, created_at, updated_at " +
+                "FROM customers WHERE id = ?" + " FOR UPDATE";
+
+        try (
+                PreparedStatement statement = connection.prepareStatement(sql)
+        ) {
+
+            statement.setLong(1, id);
+
+            try (ResultSet resultSet = statement.executeQuery()) {
+
+                if (resultSet.next()) {
+                    return mapResultSetToCustomer(resultSet);
+                }
+
+                return null;
+            }
+
+        } catch (SQLException e) {
+            throw new DatabaseException("Error al buscar el cliente por id", e);
+        }
+    }
+
 }

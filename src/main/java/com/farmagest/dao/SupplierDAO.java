@@ -162,4 +162,31 @@ public class SupplierDAO {
                 resultSet.getTimestamp("updated_at").toLocalDateTime()
         );
     }
+
+    public Supplier findByIdForUpdate(Connection connection, long id) throws SQLException {
+
+        String sql = "SELECT id, business_name, tax_id, contact_name, phone, email, address, " +
+                "active, created_at, updated_at " +
+                "FROM suppliers WHERE id = ?" + " FOR UPDATE";
+
+        try (
+                PreparedStatement statement = connection.prepareStatement(sql)
+        ) {
+
+            statement.setLong(1, id);
+
+            try (ResultSet resultSet = statement.executeQuery()) {
+
+                if (resultSet.next()) {
+                    return mapResultSetToSupplier(resultSet);
+                }
+
+                return null;
+            }
+
+        } catch (SQLException e) {
+            throw new DatabaseException("Error al buscar el proveedor por id", e);
+        }
+    }
+
 }

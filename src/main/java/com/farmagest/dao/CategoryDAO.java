@@ -176,4 +176,34 @@ public class CategoryDAO {
                 resultSet.getTimestamp("updated_at").toLocalDateTime()
         );
     }
+
+    public Category findByIdForUpdate(Connection connection, long id) throws SQLException {
+
+        String sql = "SELECT id, name, description, active, created_at, updated_at " +
+                "FROM categories " +
+                "WHERE id = ?" + " FOR UPDATE";
+
+        try (
+                PreparedStatement statement = connection.prepareStatement(sql)
+        ) {
+
+            statement.setLong(1, id);
+
+            try (ResultSet resultSet = statement.executeQuery()) {
+
+                if (resultSet.next()) {
+                    return mapResultSetToCategory(resultSet);
+                }
+
+                return null;
+            }
+
+        } catch (SQLException e) {
+            throw new DatabaseException(
+                    "Error al buscar la categoría por id",
+                    e
+            );
+        }
+    }
+
 }

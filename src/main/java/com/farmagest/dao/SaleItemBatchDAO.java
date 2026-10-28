@@ -160,4 +160,39 @@ public class SaleItemBatchDAO {
                         .toLocalDateTime()
         );
     }
+
+    public List<SaleItemBatch> findBySaleItemId(Connection connection, long saleItemId) throws SQLException {
+
+        String sql = "SELECT sale_item_id, batch_id, quantity, created_at " +
+                "FROM sale_item_batches " +
+                "WHERE sale_item_id = ? " +
+                "ORDER BY batch_id";
+
+        List<SaleItemBatch> batches = new ArrayList<>();
+
+        try (
+                PreparedStatement statement = connection.prepareStatement(sql)
+        ) {
+
+            statement.setLong(1, saleItemId);
+
+            try (ResultSet resultSet = statement.executeQuery()) {
+
+                while (resultSet.next()) {
+                    batches.add(
+                            mapResultSetToSaleItemBatch(resultSet)
+                    );
+                }
+            }
+
+            return batches;
+
+        } catch (SQLException e) {
+            throw new DatabaseException(
+                    "Error al obtener los lotes de la línea de venta",
+                    e
+            );
+        }
+    }
+
 }

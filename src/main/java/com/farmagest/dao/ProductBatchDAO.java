@@ -93,7 +93,7 @@ public class ProductBatchDAO {
                 "AND active = TRUE " +
                 "AND available_quantity > 0 " +
                 "AND (expiry_date IS NULL OR expiry_date >= CURRENT_DATE) " +
-                "ORDER BY expiry_date IS NULL, expiry_date, received_at";
+                "ORDER BY expiry_date IS NULL, expiry_date, received_at, id";
 
         List<ProductBatch> batches = new ArrayList<>();
 
@@ -149,4 +149,100 @@ public class ProductBatchDAO {
                 resultSet.getTimestamp("updated_at").toLocalDateTime()
         );
     }
+
+    public ProductBatch findByIdForUpdate(Connection connection, long id) throws SQLException {
+
+        String sql = "SELECT id, product_id, purchase_item_id, batch_number, " +
+                "expiry_date, initial_quantity, available_quantity, " +
+                "unit_cost, received_at, active, created_at, updated_at " +
+                "FROM product_batches " +
+                "WHERE id = ?" + " FOR UPDATE";
+
+        try (
+                PreparedStatement statement = connection.prepareStatement(sql)
+        ) {
+
+            statement.setLong(1, id);
+
+            try (ResultSet resultSet = statement.executeQuery()) {
+
+                if (resultSet.next()) {
+                    return mapResultSetToProductBatch(resultSet);
+                }
+
+                return null;
+            }
+
+        } catch (SQLException e) {
+            throw new DatabaseException(
+                    "Error al buscar el lote por id",
+                    e
+            );
+        }
+    }
+
+
+    public List<ProductBatch> findAvailableByProductIdForUpdate(Connection connection, long productId) throws SQLException {
+
+        String sql = "SELECT id, product_id, purchase_item_id, batch_number, " +
+                "expiry_date, initial_quantity, available_quantity, " +
+                "unit_cost, received_at, active, created_at, updated_at " +
+                "FROM product_batches " +
+                "WHERE product_id = ? " +
+                "AND active = TRUE " +
+                "AND available_quantity > 0 " +
+                "AND (expiry_date IS NULL OR expiry_date >= CURRENT_DATE) " +
+                "ORDER BY expiry_date IS NULL, expiry_date, received_at, id" + " FOR UPDATE";
+
+        List<ProductBatch> batches = new ArrayList<>();
+
+        try (
+                PreparedStatement statement = connection.prepareStatement(sql)
+        ) {
+
+            statement.setLong(1, productId);
+
+            try (ResultSet resultSet = statement.executeQuery()) {
+
+                while (resultSet.next()) {
+                    batches.add(
+                            mapResultSetToProductBatch(resultSet)
+                    );
+                }
+            }
+
+            return batches;
+
+        } catch (SQLException e) {
+            throw new DatabaseException(
+                    "Error al obtener los lotes disponibles",
+                    e
+            );
+        }
+    }
+
+
+    public boolean updateAvailableQuantity(Connection connection, long id, int quantity) throws SQLException {
+        if (quantity < 0) throw new IllegalArgumentException("Stock negativo");
+        try (PreparedStatement s = connection.prepareStatement("UPDATE product_batches SET available_quantity = ? WHERE id = ?")) {
+            s.setInt(1, quantity); s.setLong(2, id); return s.executeUpdate() == 1;
+        }
+    }
+
+    public boolean insert(Connection connection, ProductBatch batch) throws SQLException {
+        String sql = "INSERT INTO product_batches (product_id, purchase_item_id, batch_number, expiry_date, initial_quantity, available_quantity, unit_cost, received_at, active) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)";
+        try (PreparedStatement s = connection.prepareStatement(sql, java.sql.Statement.RETURN_GENERATED_KEYS)) {
+            s.setLong(1, batch.getProductId()); s.setObject(2, batch.getPurchaseItemId());
+            s.setString(3, batch.getBatchNumber()); s.setObject(4, batch.getExpiryDate());
+            s.setInt(5, batch.getInitialQuantity()); s.setInt(6, batch.getAvailableQuantity());
+            s.setBigDecimal(7, batch.getUnitCost()); s.setObject(8, batch.getReceivedAt()); s.setBoolean(9, batch.isActive());
+            if (s.executeUpdate() != 1) return false;
+            try (ResultSet keys = s.getGeneratedKeys()) {
+                if (!keys.next()) throw new SQLException("No se generó el identificador del lote");
+                batch.setId(keys.getLong(1));
+            }
+            return true;
+        }
+    }
+
 }

@@ -171,4 +171,40 @@ public class SaleItemDAO {
                         .toLocalDateTime()
         );
     }
+
+    public List<SaleItem> findBySaleId(Connection connection, long saleId) throws SQLException {
+
+        String sql = "SELECT id, sale_id, product_id, quantity, " +
+                "unit_price, vat_rate, subtotal, tax_amount, line_total, created_at " +
+                "FROM sale_items " +
+                "WHERE sale_id = ? " +
+                "ORDER BY id";
+
+        List<SaleItem> items = new ArrayList<>();
+
+        try (
+                PreparedStatement statement = connection.prepareStatement(sql)
+        ) {
+
+            statement.setLong(1, saleId);
+
+            try (ResultSet resultSet = statement.executeQuery()) {
+
+                while (resultSet.next()) {
+                    items.add(
+                            mapResultSetToSaleItem(resultSet)
+                    );
+                }
+            }
+
+            return items;
+
+        } catch (SQLException e) {
+            throw new DatabaseException(
+                    "Error al obtener las líneas de la venta",
+                    e
+            );
+        }
+    }
+
 }
