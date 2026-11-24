@@ -1,0 +1,61 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+
+<StackPane xmlns:fx="http://javafx.com/fxml/1"
+           stylesheets="@../css/farmagest.css">
+
+    <GridPane>
+        <columnConstraints>
+            <ColumnConstraints percentWidth="44"/>
+            <ColumnConstraints percentWidth="56"/>
+        </columnConstraints>
+
+        <rowConstraints>
+            <RowConstraints percentHeight="100"/>
+        </rowConstraints>
+
+        <Region styleClass="photo"/>
+
+        <StackPane GridPane.columnIndex="1" styleClass="login-surface">
+            <VBox spacing="13" maxWidth="430" maxHeight="-Infinity"
+                  styleClass="access-card">
+
+                <HBox alignment="CENTER_LEFT" spacing="10">
+                    <Region styleClass="cross"/>
+                    <Label text="FarmaGest" styleClass="brand"/>
+                </HBox>
+
+                <Label fx:id="title" text="Acceso" styleClass="title"/>
+                <Label fx:id="subtitle"
+                       text="Identifícate para acceder a FarmaGest"
+                       styleClass="muted" wrapText="true"/>
+
+                <Label text="Usuario"/>
+                <TextField fx:id="username" promptText="Usuario"/>
+
+                <Label text="Contraseña"/>
+                <HBox spacing="6">
+                    <StackPane HBox.hgrow="ALWAYS">
+                        <PasswordField fx:id="password" promptText="Contraseña"/>
+                        <TextField fx:id="visiblePassword"
+                                   visible="false" managed="false"/>
+                    </StackPane>
+                    <ToggleButton fx:id="reveal" text="Ver"/>
+                </HBox>
+
+                <VBox fx:id="emailRow" spacing="6"
+                      visible="false" managed="false">
+                    <Label text="Correo del administrador"/>
+                    <TextField fx:id="email" promptText="Correo electrónico"/>
+                </VBox>
+
+                <Button fx:id="enter" text="Entrar" defaultButton="true"
+                        maxWidth="Infinity" styleClass="primary"/>
+
+                <Label fx:id="status" wrapText="true" styleClass="error"/>
+            </VBox>
+        </StackPane>
+    </GridPane>
+</StackPane>
