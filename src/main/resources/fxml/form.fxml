@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+
+<VBox xmlns:fx="http://javafx.com/fxml/1" spacing="12" styleClass="form-body">
+    <Label fx:id="heading" styleClass="section-title"/>
+
+    <ScrollPane fitToWidth="true" maxHeight="470">
+        <GridPane fx:id="fields" hgap="14" vgap="10"/>
+    </ScrollPane>
+</VBox>

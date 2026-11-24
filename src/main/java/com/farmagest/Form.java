@@ -1,14 +1,12 @@
 package com.farmagest;
 
 import javafx.event.ActionEvent;
-import javafx.geometry.Insets;
 import javafx.scene.control.*;
 import javafx.scene.layout.GridPane;
 import javafx.scene.layout.Priority;
 import javafx.stage.Window;
 
 import java.math.BigDecimal;
-import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
 import java.util.function.Function;
@@ -17,33 +15,32 @@ import java.util.function.Supplier;
 final class Form {
 
     private final Dialog<ButtonType> dialog = new Dialog<>();
-    private final GridPane grid = new GridPane();
+    private final GridPane grid;
     private final Label error = new Label();
     private final ButtonType save = new ButtonType("Aceptar", ButtonBar.ButtonData.OK_DONE);
     private int row;
 
     Form(Window owner, String title) {
+        View view = new View("form");
+        grid = view.get("fields", GridPane.class);
+        view.get("heading", Label.class).setText(title);
+
         dialog.initOwner(owner);
         dialog.setTitle(title);
-        dialog.setHeaderText(null);
         dialog.getDialogPane().getButtonTypes().addAll(save, ButtonType.CANCEL);
-        dialog.getDialogPane().setPrefWidth(480);
-
-        grid.setHgap(12);
-        grid.setVgap(9);
-        grid.setPadding(new Insets(12));
-
-        ScrollPane scroll = new ScrollPane(grid);
-        scroll.setFitToWidth(true);
-        scroll.setMaxHeight(590);
-        dialog.getDialogPane().setContent(scroll);
+        dialog.getDialogPane().setPrefWidth(490);
+        dialog.getDialogPane().setContent(view.root);
+        dialog.getDialogPane().getStylesheets().add(View.css());
 
         error.setWrapText(true);
-        error.setStyle("-fx-text-fill: #a32020;");
+        error.getStyleClass().add("error");
     }
 
     private <T extends Control> T add(String label, T control) {
-        grid.add(new Label(label), 0, row);
+        Label caption = new Label(label);
+        caption.setLabelFor(control);
+
+        grid.add(caption, 0, row);
         grid.add(control, 1, row++);
         GridPane.setHgrow(control, Priority.ALWAYS);
         control.setMaxWidth(Double.MAX_VALUE);
@@ -65,9 +62,9 @@ final class Form {
     }
 
     DatePicker date(String label) {
-        DatePicker field = new DatePicker();
-        field.setEditable(false);
-        return add(label, field);
+        DatePicker picker = new DatePicker();
+        picker.setEditable(false);
+        return add(label, picker);
     }
 
     <T> ComboBox<T> choice(String label, List<T> values, T selected,
@@ -92,12 +89,13 @@ final class Form {
 
     <T> Optional<T> read(Supplier<T> builder) {
         grid.add(error, 0, row, 2, 1);
-        Button button = (Button) dialog.getDialogPane().lookupButton(save);
+
         class Result {
             T value;
         }
         Result result = new Result();
 
+        Button button = (Button) dialog.getDialogPane().lookupButton(save);
         button.addEventFilter(ActionEvent.ACTION, event -> {
             try {
                 result.value = builder.get();
@@ -107,9 +105,7 @@ final class Form {
             }
         });
 
-        return dialog.showAndWait()
-                .filter(save::equals)
-                .map(ignored -> result.value);
+        return dialog.showAndWait().filter(save::equals).map(ignored -> result.value);
     }
 
     static String required(TextField field, String label) {
@@ -129,7 +125,7 @@ final class Form {
         try {
             return Integer.parseInt(required(field, label));
         } catch (NumberFormatException ex) {
-            throw new IllegalArgumentException("«" + label + "» debe ser un número entero.");
+            throw new IllegalArgumentException("«" + label + "» debe ser un entero.");
         }
     }
 
