@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+
+<VBox xmlns:fx="http://javafx.com/fxml/1"
+      spacing="12" prefWidth="740" styleClass="form-body">
+
+    <Label fx:id="heading" styleClass="section-title"/>
+
+    <TextField fx:id="search" promptText="Buscar por nombre o código de barras"/>
+    <ComboBox fx:id="product" promptText="Selecciona un producto" maxWidth="Infinity"/>
+
+    <HBox spacing="10" alignment="BOTTOM_LEFT">
+        <VBox spacing="4">
+            <Label text="Unidades"/>
+            <TextField fx:id="quantity" text="1" prefWidth="80"/>
+        </VBox>
+
+        <VBox spacing="4">
+            <Label text="Precio base (€)"/>
+            <TextField fx:id="price" prefWidth="105"/>
+        </VBox>
+
+        <VBox spacing="4">
+            <Label text="IVA (%)"/>
+            <TextField fx:id="vat" prefWidth="75"/>
+        </VBox>
+
+        <Button fx:id="add" text="Añadir línea" styleClass="primary"/>
+        <Button fx:id="remove" text="Quitar selección"/>
+    </HBox>
+
+    <TableView fx:id="lines" prefHeight="220"/>
+    <Label fx:id="total" styleClass="section-title"/>
+    <Label fx:id="error" wrapText="true" styleClass="error"/>
+</VBox>

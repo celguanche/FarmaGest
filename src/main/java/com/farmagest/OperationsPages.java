@@ -220,55 +220,15 @@ final class OperationsPages {
     }
 
     private Optional<List<Line>> collectLines(List<Product> available, boolean purchase) {
-        List<Line> lines = new ArrayList<>();
-        ButtonType another = new ButtonType("Añadir otro producto");
-        ButtonType finish = new ButtonType(purchase ? "Guardar pedido" : "Registrar venta");
-
-        while (true) {
-            Form f = new Form(ui.stage, "Línea " + (lines.size() + 1));
-            var product = f.choice("Producto", available, null, this::productLabel);
-            var quantity = f.text("Cantidad", 1);
-            var cost = purchase ? f.text("Coste unitario sin IVA", null) : null;
-            var vat = purchase ? f.text("IVA de compra (%)", null) : null;
-
-            if (purchase) {
-                product.valueProperty().addListener((obs, old, value) -> {
-                    if (value != null) vat.setText(value.getVatRate().toPlainString());
-                });
-            }
-
-            var result = f.read(() -> {
-                Product selected = Form.selected(product, "Producto");
-                int units = Form.integer(quantity, "Cantidad");
-                if (units <= 0) throw new IllegalArgumentException("La cantidad debe ser positiva.");
-
-                BigDecimal base = purchase ? Form.decimal(cost, "Coste") : selected.getSalePrice();
-                BigDecimal rate = purchase ? Form.decimal(vat, "IVA") : selected.getVatRate();
-                if (base.signum() < 0 || rate.signum() < 0
-                        || rate.compareTo(BigDecimal.valueOf(100)) > 0) {
-                    throw new IllegalArgumentException("Revisa el importe y el porcentaje de IVA.");
-                }
-                return new Line(selected, units, base, rate);
-            });
-
-            if (result.isEmpty()) return Optional.empty();
-            lines.add(result.get());
-
-            StringBuilder summary = new StringBuilder();
-            for (Line line : lines) {
-                summary.append(line.product().getName()).append(" · ")
-                        .append(line.quantity()).append(" × ").append(line.cost())
-                        .append(" + ").append(line.vat()).append("% IVA\n");
-            }
-
-            Alert review = new Alert(Alert.AlertType.CONFIRMATION, summary.toString(),
-                    another, finish, ButtonType.CANCEL);
-            review.initOwner(ui.stage);
-            review.setHeaderText(purchase ? "Revisar pedido" : "Revisar venta");
-            ButtonType choice = review.showAndWait().orElse(ButtonType.CANCEL);
-            if (choice == finish) return Optional.of(lines);
-            if (choice != another) return Optional.empty();
-        }
+        return OrderEditor.open(ui.stage, available, purchase)
+                .map(lines -> lines.stream()
+                        .map(line -> new Line(
+                                line.product(),
+                                line.quantity(),
+                                line.cost(),
+                                line.vat()
+                        ))
+                        .toList());
     }
 
     private void saleDetails(Sale sale) {
