@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+
+<VBox xmlns:fx="http://javafx.com/fxml/1" spacing="17" styleClass="page">
+
+    <Label text="Inicio" styleClass="muted"/>
+    <Label text="Resumen de la farmacia" styleClass="title"/>
+
+    <HBox spacing="14">
+        <HBox spacing="12" alignment="CENTER_LEFT"
+              prefWidth="220" HBox.hgrow="ALWAYS" styleClass="metric">
+            <StackPane styleClass="icon-active">
+                <Region styleClass="glyph-active"/>
+            </StackPane>
+            <VBox spacing="5">
+                <Label text="Productos activos" styleClass="muted"/>
+                <Label fx:id="active" text="0" styleClass="number"/>
+            </VBox>
+        </HBox>
+
+        <HBox spacing="12" alignment="CENTER_LEFT"
+              prefWidth="220" HBox.hgrow="ALWAYS" styleClass="metric">
+            <StackPane styleClass="icon-low">
+                <Region styleClass="glyph-low"/>
+            </StackPane>
+            <VBox spacing="5">
+                <Label text="Stock bajo" styleClass="muted"/>
+                <Label fx:id="low" text="0" styleClass="number"/>
+            </VBox>
+        </HBox>
+
+        <HBox spacing="12" alignment="CENTER_LEFT"
+              prefWidth="220" HBox.hgrow="ALWAYS" styleClass="metric">
+            <StackPane styleClass="icon-expiring">
+                <Region styleClass="glyph-expiring"/>
+            </StackPane>
+            <VBox spacing="5">
+                <Label text="Lotes por caducar" styleClass="muted"/>
+                <Label fx:id="expiring" text="0" styleClass="number"/>
+            </VBox>
+        </HBox>
+    </HBox>
+
+    <VBox spacing="12" VBox.vgrow="ALWAYS" styleClass="surface">
+        <Label text="Alertas" styleClass="section-title"/>
+        <TableView fx:id="alerts" VBox.vgrow="ALWAYS"/>
+    </VBox>
+</VBox>

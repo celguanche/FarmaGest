@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+
+<BorderPane xmlns:fx="http://javafx.com/fxml/1"
+            stylesheets="@../css/farmagest.css">
+
+    <left>
+        <VBox prefWidth="192" styleClass="sidebar">
+            <HBox spacing="9" alignment="CENTER_LEFT" styleClass="rail-brand">
+                <Region styleClass="cross"/>
+                <Label text="FarmaGest" styleClass="brand"/>
+            </HBox>
+
+            <ScrollPane fitToWidth="true" hbarPolicy="NEVER"
+                        VBox.vgrow="ALWAYS" styleClass="rail">
+                <VBox fx:id="menu" spacing="3" styleClass="menu"/>
+            </ScrollPane>
+
+            <Label fx:id="identity" wrapText="true" styleClass="status"/>
+        </VBox>
+    </left>
+
+    <bottom>
+        <Label fx:id="status" wrapText="true" styleClass="status"/>
+    </bottom>
+</BorderPane>

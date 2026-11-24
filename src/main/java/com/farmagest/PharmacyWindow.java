@@ -1,15 +1,18 @@
 package com.farmagest;
 
+import com.farmagest.dao.DashboardDAO;
 import com.farmagest.model.AuditLog;
+import com.farmagest.model.Supplier;
 import com.farmagest.model.User;
 import com.farmagest.model.enums.Role;
 import com.farmagest.service.AuditService;
 import com.farmagest.service.AuthService;
 import com.farmagest.service.UserService;
+import javafx.application.Platform;
 import javafx.beans.property.ReadOnlyStringWrapper;
 import javafx.collections.FXCollections;
 import javafx.collections.transformation.FilteredList;
-import javafx.geometry.Insets;
+import javafx.css.PseudoClass;
 import javafx.scene.Scene;
 import javafx.scene.control.*;
 import javafx.scene.layout.*;
@@ -32,9 +35,10 @@ final class PharmacyWindow {
     final AuthService auth;
 
     private final Runnable logout;
-    private final BorderPane root = new BorderPane();
-    private final Label status = new Label();
-    private final VBox menu = new VBox(5);
+    private final View shell = new View("workspace");
+    private final BorderPane root = (BorderPane) shell.root;
+    private final Label status = shell.get("status", Label.class);
+    private final VBox menu = shell.get("menu", VBox.class);
 
     PharmacyWindow(Stage stage, User user, AuthService auth, Runnable logout) {
         this.stage = stage;
@@ -47,58 +51,66 @@ final class PharmacyWindow {
         CatalogPages catalog = new CatalogPages(this);
         OperationsPages operations = new OperationsPages(this);
 
-        menu.setPadding(new Insets(12));
-        menu.setPrefWidth(175);
-
-        nav("Productos", catalog::products);
-        nav("Categorías", catalog::categories);
-        nav("Fabricantes", catalog::manufacturers);
-        nav("Proveedores", catalog::suppliers);
-        nav("Clientes", catalog::customers);
-        nav("Ventas", operations::sales);
-        nav("Inventario", operations::stock);
-        nav("Stock bajo", operations::lowStock);
+        addPage("Inicio", this::dashboard);
+        addPage("Productos", catalog::products);
+        addPage("Categorías", catalog::categories);
+        addPage("Fabricantes", catalog::manufacturers);
+        addPage("Proveedores", catalog::suppliers);
+        addPage("Clientes", catalog::customers);
+        addPage("Ventas", operations::sales);
+        addPage("Inventario", operations::stock);
+        addPage("Stock bajo", operations::lowStock);
 
         if (isManager()) {
-            nav("Compras", operations::purchases);
-            nav("Usuarios", catalog::users);
-            nav("Auditoría", operations::audit);
+            addPage("Compras", operations::purchases);
+            addPage("Usuarios", catalog::users);
+            addPage("Auditoría", operations::audit);
         }
 
-        nav("Mi contraseña", this::changePassword);
-        nav("Cerrar sesión", logout);
+        addMenuAction("Mi contraseña", this::changePassword);
+        addMenuAction("Cerrar sesión", logout);
 
-        ScrollPane navigation = new ScrollPane(menu);
-        navigation.setFitToWidth(true);
-        root.setLeft(navigation);
+        shell.get("identity", Label.class)
+                .setText(user.getUsername() + " · " + user.getRole());
 
-        Label header = new Label("FarmaGest    ·    " + user.getUsername()
-                + "    ·    " + user.getRole());
-        header.setPadding(new Insets(12, 16, 12, 16));
-        header.setStyle("-fx-font-size: 18px; -fx-font-weight: bold;");
-        root.setTop(header);
-
-        status.setPadding(new Insets(8, 16, 10, 16));
-        status.setWrapText(true);
-        root.setBottom(status);
-
-        stage.setScene(new Scene(root, 1120, 680));
-        catalog.products();
+        stage.setScene(new Scene(root, 1160, 730));
+        activate((Button) menu.getChildren().get(0));
+        dashboard();
     }
 
     boolean isManager() {
         return user.getRole() == Role.ADMIN || user.getRole() == Role.DEVELOPER;
     }
 
-    private void nav(String name, Runnable action) {
+    private Button addMenuAction(String name, Runnable action) {
         Button button = button(name, action);
+        button.getStyleClass().add("nav");
         button.setMaxWidth(Double.MAX_VALUE);
         menu.getChildren().add(button);
+        return button;
+    }
+
+    private void addPage(String name, Runnable action) {
+        Button button = addMenuAction(name, action);
+        button.setOnAction(event -> {
+            activate(button);
+            action.run();
+        });
+    }
+
+    private void activate(Button current) {
+        PseudoClass state = PseudoClass.getPseudoClass("active-page");
+        menu.getChildren().forEach(node ->
+                node.pseudoClassStateChanged(state, node == current));
     }
 
     static Button button(String name, Runnable action) {
         Button button = new Button(name);
         button.setOnAction(event -> action.run());
+
+        if (name.startsWith("Nuev") || name.startsWith("Recibir")) {
+            button.getStyleClass().add("primary");
+        }
         return button;
     }
 
@@ -113,27 +125,50 @@ final class PharmacyWindow {
         }, success);
     }
 
+    private void dashboard() {
+        load(ALL, new DashboardDAO()::read, data -> {
+            View view = new View("dashboard");
+
+            view.get("active", Label.class).setText(String.valueOf(data.products()));
+            view.get("low", Label.class).setText(String.valueOf(data.lowStock()));
+            view.get("expiring", Label.class).setText(String.valueOf(data.expiring()));
+
+            TableView<DashboardDAO.Notice> table = table(view, "alerts");
+
+            configure(table,
+                    new Column<>("Producto", DashboardDAO.Notice::product),
+                    new Column<>("Tipo de alerta", DashboardDAO.Notice::detail),
+                    new Column<>("Prioridad", DashboardDAO.Notice::priority),
+                    new Column<>("Revisión / caducidad", DashboardDAO.Notice::date));
+
+            table.setPlaceholder(new Label("Sin alertas de stock ni de caducidad"));
+            table.getItems().setAll(data.alerts());
+
+            root.setCenter(view.root);
+            message("Caducidades previstas en los próximos 30 días");
+        });
+    }
+
     <T> void save(Role[] roles, String action, String entity,
                   Callable<T> work, Function<T, Long> entityId, Runnable refresh) {
-        record Outcome(String warning) {}
-
         load(roles, () -> {
             T result = work.call();
+
             try {
                 new AuditService().record(new AuditLog(
                         0, user.getId(), action, entity, entityId.apply(result),
                         null, null, null, null
                 ));
-                return new Outcome(null);
+                return "";
             } catch (RuntimeException ex) {
-                return new Outcome("La operación ya se guardó. Falló el registro de auditoría: "
-                        + ex.getMessage());
+                return "La operación ya se guardó. Falló el registro de auditoría: "
+                        + ex.getMessage();
             }
-        }, result -> {
-            if (result.warning() != null) {
-                Alert warning = new Alert(Alert.AlertType.WARNING, result.warning(), ButtonType.OK);
-                warning.initOwner(stage);
-                warning.showAndWait();
+        }, warning -> {
+            if (!warning.isEmpty()) {
+                Alert alert = new Alert(Alert.AlertType.WARNING, warning, ButtonType.OK);
+                style(alert);
+                alert.showAndWait();
             }
             refresh.run();
         });
@@ -142,8 +177,13 @@ final class PharmacyWindow {
     boolean confirm(String text) {
         Alert alert = new Alert(Alert.AlertType.CONFIRMATION, text,
                 ButtonType.CANCEL, ButtonType.OK);
-        alert.initOwner(stage);
+        style(alert);
         return alert.showAndWait().orElse(ButtonType.CANCEL) == ButtonType.OK;
+    }
+
+    private void style(Dialog<?> dialog) {
+        dialog.initOwner(stage);
+        dialog.getDialogPane().getStylesheets().add(View.css());
     }
 
     record Column<T>(String title, Function<T, ?> value) {
@@ -153,51 +193,115 @@ final class PharmacyWindow {
         }
     }
 
+    @SuppressWarnings("unchecked")
+    private static <T> TableView<T> table(View view, String id) {
+        return (TableView<T>) view.get(id, TableView.class);
+    }
+
     @SafeVarargs
-    final <T> TableView<T> page(String title, List<T> data, FlowPane actions,
-                                Column<T>... columns) {
-        Label heading = new Label(title);
-        heading.setStyle("-fx-font-size: 21px; -fx-font-weight: bold;");
-
-        TextField search = new TextField();
-        search.setPromptText("Buscar en esta tabla");
-
-        TableView<T> table = new TableView<>();
-        table.setPlaceholder(new Label("Sin registros"));
+    private static <T> void configure(TableView<T> table, Column<T>... definitions) {
         table.setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY_FLEX_LAST_COLUMN);
-
-        for (Column<T> definition : columns) {
+        for (Column<T> definition : definitions) {
             TableColumn<T, String> column = new TableColumn<>(definition.title());
             column.setCellValueFactory(cell ->
                     new ReadOnlyStringWrapper(definition.text(cell.getValue())));
             column.setSortable(false);
             table.getColumns().add(column);
         }
+    }
+
+    @SafeVarargs
+    final <T> TableView<T> page(String title, List<T> data,
+                                FlowPane actions, Column<T>... columns) {
+        View view = new View("list");
+        view.get("heading", Label.class).setText(title);
+
+        TextField search = view.get("search", TextField.class);
+        TableView<T> table = table(view, "table");
+        configure(table, columns);
+        table.setPlaceholder(new Label("Sin registros"));
+
+        actions.setHgap(7);
+        actions.setVgap(7);
+        view.get("toolbar", FlowPane.class).getChildren().add(actions);
 
         var rows = new FilteredList<>(FXCollections.observableArrayList(data));
         table.setItems(rows);
-        search.textProperty().addListener((obs, previous, value) -> {
+
+        search.textProperty().addListener((obs, old, value) -> {
             String query = value.strip().toLowerCase(Locale.ROOT);
             rows.setPredicate(row -> Arrays.stream(columns).anyMatch(column ->
                     column.text(row).toLowerCase(Locale.ROOT).contains(query)));
         });
 
-        actions.setHgap(7);
-        actions.setVgap(7);
-        VBox body = new VBox(10, heading, actions, search, table);
-        body.setPadding(new Insets(14));
-        VBox.setVgrow(table, Priority.ALWAYS);
-        root.setCenter(body);
+        if (title.equals("Proveedores")) {
+            search.setPromptText("Buscar proveedor por razón social, NIF o contacto…");
+            search.setMaxWidth(Double.MAX_VALUE);
+
+            Label subtitle = view.get("subtitle", Label.class);
+            subtitle.setText("Gestión de proveedores de la farmacia.");
+            subtitle.setVisible(true);
+            subtitle.setManaged(true);
+
+            supplierDetail(view, table, actions);
+            if (!rows.isEmpty()) table.getSelectionModel().selectFirst();
+        }
+
+        root.setCenter(view.root);
         message(data.size() + " registros");
         return table;
     }
 
+    private <T> void supplierDetail(View page, TableView<T> table, FlowPane actions) {
+        View detail = new View("supplier-detail");
+        StackPane target = page.get("detail", StackPane.class);
+        target.getChildren().setAll(detail.root);
+
+        // CatalogPages adds its buttons after page() returns.
+        Platform.runLater(() -> {
+            for (var node : List.copyOf(actions.getChildren())) {
+                if (!(node instanceof Button command)) continue;
+
+                if (command.getText().equals("Nuevo")) {
+                    actions.getChildren().remove(command);
+                    command.setText("+  Nuevo proveedor");
+                    page.get("primaryActions", HBox.class).getChildren().add(command);
+                } else if (command.getText().equals("Editar")) {
+                    actions.getChildren().remove(command);
+                    command.setText("Editar proveedor");
+                    command.getStyleClass().add("primary");
+                    detail.get("editActions", HBox.class).getChildren().add(command);
+                }
+            }
+        });
+
+        table.getSelectionModel().selectedItemProperty().addListener((obs, old, row) -> {
+            boolean selected = row instanceof Supplier;
+            target.setManaged(selected);
+            target.setVisible(selected);
+
+            if (row instanceof Supplier supplier) {
+                detail.get("company", Label.class).setText(supplier.getBusinessName());
+                detail.get("tax", Label.class).setText(supplier.getTaxId());
+                detail.get("contact", Label.class).setText(supplier.getContactName());
+                detail.get("phone", Label.class).setText(supplier.getPhone());
+                detail.get("address", Label.class).setText(supplier.getAddress());
+                detail.get("email", Label.class).setText(supplier.getEmail());
+
+                Label state = detail.get("state", Label.class);
+                state.setText(supplier.isActive() ? "Activo" : "Inactivo");
+                state.pseudoClassStateChanged(
+                        PseudoClass.getPseudoClass("inactive"), !supplier.isActive());
+            }
+        });
+    }
+
     <T> void selected(TableView<T> table, Consumer<T> action) {
-        T value = table.getSelectionModel().getSelectedItem();
-        if (value == null) {
+        T row = table.getSelectionModel().getSelectedItem();
+        if (row == null) {
             message("Selecciona primero una fila.");
         } else {
-            action.accept(value);
+            action.accept(row);
         }
     }
 
@@ -210,7 +314,8 @@ final class PharmacyWindow {
         form.read(() -> {
             if (next.getText().length() < 12 || !next.getText().equals(repeat.getText())) {
                 throw new IllegalArgumentException(
-                        "La contraseña debe tener al menos 12 caracteres y coincidir en ambos campos.");
+                        "La nueva contraseña debe tener al menos 12 caracteres "
+                                + "y coincidir en ambos campos.");
             }
             return new char[][] {
                     current.getText().toCharArray(), next.getText().toCharArray()

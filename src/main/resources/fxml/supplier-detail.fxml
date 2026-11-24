@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+
+<VBox xmlns:fx="http://javafx.com/fxml/1" spacing="14" styleClass="surface">
+
+    <HBox spacing="12" alignment="CENTER_LEFT">
+        <Label fx:id="company" styleClass="section-title"/>
+        <Label fx:id="state" styleClass="badge"/>
+        <Region HBox.hgrow="ALWAYS"/>
+        <HBox fx:id="editActions"/>
+    </HBox>
+
+    <Separator/>
+
+    <GridPane hgap="16" vgap="9">
+        <columnConstraints>
+            <ColumnConstraints minWidth="60"/>
+            <ColumnConstraints hgrow="ALWAYS"/>
+            <ColumnConstraints minWidth="90"/>
+            <ColumnConstraints hgrow="ALWAYS"/>
+        </columnConstraints>
+
+        <Label text="NIF" styleClass="muted"/>
+        <Label fx:id="tax" GridPane.columnIndex="1"/>
+
+        <Label text="Correo electrónico" styleClass="muted"
+               GridPane.columnIndex="2"/>
+        <Label fx:id="email" wrapText="true" GridPane.columnIndex="3"/>
+
+        <Label text="Contacto" styleClass="muted" GridPane.rowIndex="1"/>
+        <Label fx:id="contact" GridPane.columnIndex="1" GridPane.rowIndex="1"/>
+
+        <Label text="Dirección" styleClass="muted"
+               GridPane.columnIndex="2" GridPane.rowIndex="1"/>
+        <Label fx:id="address" wrapText="true"
+               GridPane.columnIndex="3" GridPane.rowIndex="1"/>
+
+        <Label text="Teléfono" styleClass="muted" GridPane.rowIndex="2"/>
+        <Label fx:id="phone" GridPane.columnIndex="1" GridPane.rowIndex="2"/>
+    </GridPane>
+</VBox>

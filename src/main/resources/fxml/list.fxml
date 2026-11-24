@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+
+<VBox xmlns:fx="http://javafx.com/fxml/1" spacing="14" styleClass="page">
+
+    <HBox alignment="CENTER_LEFT" spacing="10">
+        <Label fx:id="heading" styleClass="title"/>
+        <Region HBox.hgrow="ALWAYS"/>
+        <HBox fx:id="primaryActions" spacing="8"/>
+    </HBox>
+
+    <Label fx:id="subtitle" visible="false" managed="false"
+           styleClass="muted"/>
+
+    <VBox spacing="12" VBox.vgrow="ALWAYS" styleClass="surface">
+        <FlowPane fx:id="toolbar" hgap="7" vgap="7"/>
+
+        <TextField fx:id="search"
+                   promptText="Buscar en esta tabla…"
+                   maxWidth="460"/>
+
+        <TableView fx:id="table" minHeight="95" VBox.vgrow="ALWAYS"/>
+    </VBox>
+
+    <StackPane fx:id="detail" visible="false" managed="false"/>
+</VBox>
