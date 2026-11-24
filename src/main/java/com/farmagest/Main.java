@@ -7,10 +7,11 @@ import com.farmagest.service.AuthService;
 import com.farmagest.service.UserService;
 import javafx.application.Application;
 import javafx.concurrent.Task;
-import javafx.geometry.Insets;
 import javafx.scene.Scene;
 import javafx.scene.control.*;
-import javafx.scene.layout.*;
+import javafx.scene.layout.Pane;
+import javafx.scene.layout.StackPane;
+import javafx.scene.layout.VBox;
 import javafx.stage.Stage;
 
 import java.util.Arrays;
@@ -31,67 +32,70 @@ public class Main extends Application {
     }
 
     private void showLogin(boolean setup) {
-        TextField username = new TextField(setup ? "admin" : "");
-        username.setEditable(!setup);
+        View view = new View("access");
+        StackPane root = (StackPane) view.root;
 
-        PasswordField password = new PasswordField();
-        TextField email = new TextField();
-        Label status = new Label();
-        status.setWrapText(true);
+        TextField username = view.get("username", TextField.class);
+        PasswordField password = view.get("password", PasswordField.class);
+        TextField visiblePassword = view.get("visiblePassword", TextField.class);
+        ToggleButton reveal = view.get("reveal", ToggleButton.class);
+        TextField email = view.get("email", TextField.class);
+        Button enter = view.get("enter", Button.class);
+        Label status = view.get("status", Label.class);
 
-        Button enter = new Button(setup ? "Crear administrador y entrar" : "Entrar");
-        enter.setDefaultButton(true);
-        enter.setMaxWidth(Double.MAX_VALUE);
+        visiblePassword.textProperty().bindBidirectional(password.textProperty());
 
-        Label title = new Label(setup ? "Primer administrador" : "FarmaGest");
-        title.setStyle("-fx-font-size: 24px; -fx-font-weight: bold;");
-
-        VBox form = new VBox(10, title, new Label("Usuario"), username,
-                new Label("Contraseña"), password);
+        reveal.selectedProperty().addListener((obs, old, visible) -> {
+            visiblePassword.setManaged(visible);
+            visiblePassword.setVisible(visible);
+            password.setManaged(!visible);
+            password.setVisible(!visible);
+            reveal.setText(visible ? "Ocultar" : "Ver");
+        });
 
         if (setup) {
-            form.getChildren().addAll(new Label("Correo del administrador"), email);
+            username.setText("admin");
+            username.setEditable(false);
+            view.get("title", Label.class).setText("Primer administrador");
+            view.get("subtitle", Label.class)
+                    .setText("Elige una contraseña de al menos 12 caracteres.");
+
+            VBox emailRow = view.get("emailRow", VBox.class);
+            emailRow.setVisible(true);
+            emailRow.setManaged(true);
+            enter.setText("Crear administrador y entrar");
         }
 
-        form.getChildren().addAll(enter, status);
-        form.setPadding(new Insets(24));
-        form.setMaxSize(380, Region.USE_PREF_SIZE);
-        window.setScene(new Scene(new StackPane(form), 900, 580));
-
         enter.setOnAction(event -> {
-            String name = username.getText().trim();
-            String address = email.getText().trim();
+            String name = username.getText().strip();
+            String address = email.getText().strip();
             char[] secret = password.getText().toCharArray();
             password.clear();
 
-            execute(form, status, () -> {
+            execute(root, status, () -> {
                 try {
-                    if (setup) {
-                        createAdmin(address, secret);
-                    }
+                    if (setup) createAdmin(address, secret);
                     return auth.login(name, secret);
                 } finally {
                     Arrays.fill(secret, '\0');
                 }
-            }, user -> new PharmacyWindow(window, user, auth,
-                    () -> showLogin(false)).show());
+            }, user -> new PharmacyWindow(window, user, auth, () -> showLogin(false)).show());
         });
+
+        window.setScene(new Scene(root, 1024, 680));
     }
 
     private void createAdmin(String email, char[] password) {
         UserService users = new UserService();
 
         if (!users.findAll().isEmpty()) {
-            throw new IllegalStateException(
-                    "Ya existen usuarios. Inicia la aplicación sin --init-admin."
-            );
+            throw new IllegalStateException("Ya existen usuarios. Inicia sin --init-admin.");
         }
 
         User admin = new User(
                 0, "admin", null, "Administrador", "FarmaGest",
                 email, Role.ADMIN, true, null, null, null
         );
-
         users.create(admin, password);
     }
 
@@ -115,8 +119,7 @@ public class Main extends Application {
 
         task.setOnFailed(event -> {
             pane.setDisable(false);
-            Throwable error = task.getException();
-            String message = error.getMessage();
+            String message = task.getException().getMessage();
             status.setText(message == null ? "Error al realizar la operación." : message);
         });
 
