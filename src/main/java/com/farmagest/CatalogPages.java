@@ -9,7 +9,10 @@ import javafx.scene.layout.FlowPane;
 import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.Callable;
-import java.util.function.*;
+import java.util.function.Consumer;
+import java.util.function.Function;
+import java.util.function.LongConsumer;
+import java.util.function.ToLongFunction;
 
 import static com.farmagest.PharmacyWindow.*;
 
